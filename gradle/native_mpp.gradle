@@ -2,10 +2,6 @@
  * Copyright 2017-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
 
-
-project.ext.deployMode = property('native.deploy') == 'true'
-project.ext.singleTargetMode = project.ext.ideaActive || !project.ext.deployMode
-
 project.ext.nativeMainSets = []
 project.ext.nativeTestSets = []
 
@@ -17,50 +13,44 @@ kotlin {
     }
 
     targets {
-        if (project.ext.singleTargetMode) {
-            fromPreset(project.ext.ideaPreset, 'native')
-        } else {
-            // Linux
-            addTarget(presets.linuxX64)
-            addTarget(presets.linuxArm32Hfp)
-            addTarget(presets.linuxArm64)
+        // Linux
+        addTarget(presets.linuxX64)
+        addTarget(presets.linuxArm32Hfp)
+        addTarget(presets.linuxArm64)
 
-            // Mac & iOS
-            addTarget(presets.macosX64)
+        // Mac & iOS
+        addTarget(presets.macosX64)
 
-            addTarget(presets.iosArm64)
-            addTarget(presets.iosArm32)
-            addTarget(presets.iosX64)
+        addTarget(presets.iosArm64)
+        addTarget(presets.iosArm32)
+        addTarget(presets.iosX64)
 
-            addTarget(presets.watchosX86)
-            addTarget(presets.watchosArm32)
-            addTarget(presets.watchosArm64)
+        addTarget(presets.watchosX86)
+        addTarget(presets.watchosArm32)
+        addTarget(presets.watchosArm64)
 
-            addTarget(presets.tvosArm64)
-            addTarget(presets.tvosX64)
+        addTarget(presets.tvosArm64)
+        addTarget(presets.tvosX64)
 
-            // Windows
-            addTarget(presets.mingwX64)
-            addTarget(presets.mingwX86)
+        // Windows
+        addTarget(presets.mingwX64)
+        addTarget(presets.mingwX86)
 
-            // WASM
-            addTarget(presets.wasm32)
-        }
+        // WASM
+        addTarget(presets.wasm32)
     }
 
     sourceSets {
         nativeMain { dependsOn commonMain }
         // Empty source set is required in order to have native tests task
-        nativeTest {}
+        nativeTest { dependsOn commonTest }
 
-        if (!project.ext.singleTargetMode) {
-            configure(project.ext.nativeMainSets) {
-                dependsOn nativeMain
-            }
+        configure(project.ext.nativeMainSets) {
+            dependsOn nativeMain
+        }
 
-            configure(project.ext.nativeTestSets) {
-                dependsOn nativeTest
-            }
+        configure(project.ext.nativeTestSets) {
+            dependsOn nativeTest
         }
     }
 }
