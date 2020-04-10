@@ -9,23 +9,22 @@ import kotlinx.serialization.*
 internal sealed class ListLikeDescriptor(val elementDesc: SerialDescriptor) : SerialDescriptor {
     override val kind: SerialKind get() = StructureKind.LIST
     override val elementsCount: Int = 1
-    
     override fun getElementName(index: Int): String = index.toString()
     override fun getElementIndex(name: String): Int =
         name.toIntOrNull() ?: throw IllegalArgumentException("$name is not a valid list index")
 
     override fun isElementOptional(index: Int): Boolean {
-        if (index != 0) throw IllegalStateException("List descriptor has only one child element, index: $index")
+        require(index >= 0) { "Illegal index $index"}
         return false
     }
 
     override fun getElementAnnotations(index: Int): List<Annotation> {
-        if (index != 0) throw IndexOutOfBoundsException("List descriptor has only one child element, index: $index")
+        require(index >= 0) { "Illegal index $index"}
         return emptyList()
     }
 
     override fun getElementDescriptor(index: Int): SerialDescriptor {
-        if (index != 0) throw IndexOutOfBoundsException("List descriptor has only one child element, index: $index")
+        require(index >= 0) { "Illegal index $index"}
         return elementDesc
     }
 
@@ -53,29 +52,30 @@ internal sealed class MapLikeDescriptor(
         name.toIntOrNull() ?: throw IllegalArgumentException("$name is not a valid map index")
 
     override fun isElementOptional(index: Int): Boolean {
-        if (index !in 0..1) throw IllegalStateException("Map descriptor has only two child elements, index: $index")
+        require(index >= 0) { "Illegal index $index"}
         return false
     }
 
     override fun getElementAnnotations(index: Int): List<Annotation> {
-        if (index !in 0..1) throw IndexOutOfBoundsException("Map descriptor has only two child elements, index: $index")
+        require(index >= 0) { "Illegal index $index"}
         return emptyList()
     }
 
-    override fun getElementDescriptor(index: Int): SerialDescriptor = when (index) {
-        0 -> keyDescriptor
-        1 -> valueDescriptor
-        else -> throw IndexOutOfBoundsException("Map descriptor has only one child element, index: $index")
+    override fun getElementDescriptor(index: Int): SerialDescriptor {
+        require(index >= 0) { "Illegal index $index"}
+        return when (index % 2) {
+            0 -> keyDescriptor
+            1 -> valueDescriptor
+            else -> error("Unreached")
+        }
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is MapLikeDescriptor) return false
-
         if (serialName != other.serialName) return false
         if (keyDescriptor != other.keyDescriptor) return false
         if (valueDescriptor != other.valueDescriptor) return false
-
         return true
     }
 
